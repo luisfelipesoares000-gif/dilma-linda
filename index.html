@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dilma Quest — A Jornada Lendária (Edição Gráfica Definitiva)</title>
+    <style>
+        /* Reset e Estilo Base */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: #121214;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Container Principal do Jogo */
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-color: #1a1a1e;
+            border: 4px solid #4ade80;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HUD - Painel Superior de Alta Fidelidade */
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background-color: #26262b;
+            border-bottom: 4px solid #4ade80;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .hud-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-control {
+            background: none;
+            border: none;
+            color: #4ade80;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .btn-control:hover {
+            background-color: rgba(74, 222, 128, 0.1);
+        }
+
+        /* Área do Canvas e Telas */
+        #game-screen {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            background-color: #0b0b0d;
+        }
+
+        /* Canvas com renderização Pixel Art Perfeita */
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Telas de Overlay (Menu, Vitória, Quiz) */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(18, 18, 20, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            color: #4ade80;
+            font-size: 38px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+
+        h2 {
+            color: #f43f5e;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            color: #38bdf8;
+            margin-bottom: 20px;
+        }
+
+        .tribute-box {
+            background-color: #26262b;
+            border-left: 4px solid #f43f5e;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            max-width: 500px;
+            font-style: italic;
+        }
+
+        .instructions {
+            text-align: left;
+            background: #1a1a1e;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #3f3f46;
+            margin-bottom: 30px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .instructions ul {
+            list-style: none;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .btn-action {
+            background-color: #4ade80;
+            color: #121214;
+            border: none;
+            padding: 14px 28px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 4px 0 #22c55e;
+            transition: all 0.1s;
+        }
+
+        .btn-action:hover {
+            background-color: #22c55e;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #15803d;
+        }
+
+        .btn-action:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* Caixa de Desafio de Geografia */
+        #quiz-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(38, 38, 43, 0.9);
+            border: 2px solid #38bdf8;
+            padding: 15px 25px;
+            border-radius: 6px;
+            width: 90%;
+            z-index: 5;
+            text-align: center;
+        }
+
+        #quiz-title {
+            color: #38bdf8;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        /* Modo Tela Cheia */
+        #game-container.fullscreen {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            border-radius: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- HUD Superior Otimizado -->
+        <div id="hud">
+            <div class="hud-group">
+                <div class="hud-item">⭐ FASE <span id="txt-fase">1</span>/5</div>
+                <div class="hud-item">📚 <span id="txt-livros">0</span>/5</div>
+                <div class="hud-item" style="color: #f43f5e;">❤ <span id="txt-vidas">5</span>/5</div>
+            </div>
+            <div class="hud-group">
+                <div class="hud-item" style="color: #eab308;">🏆 PONTOS: <span id="txt-pontos">0</span></div>
+                <button class="btn-control" id="btn-fullscreen" title="Tela Cheia">⛶</button>
+                <button class="btn-control" id="btn-audio" title="Mudar Som">🔊</button>
+            </div>
+        </div>
+
+        <div id="game-screen">
+            <!-- Tela Inicial (Menu) -->
+            <div class="overlay" id="screen-start">
+                <h1>🎮 DILMA QUEST</h1>
+                <h3>A Jornada Lendária — Homenagem da Turma do 6º B</h3>
+                
+                <div class="tribute-box">
+                    "Professora Dilma, seu carinho ilumina nossa sala!"
+                </div>
+
+                <div class="instructions">
+                    <ul>
+                        <li>🏃 <strong>Andar:</strong> A / D ou Setas Esquerda / Direita</li>
+                        <li>🦘 <strong>Pular:</strong> Espaço, W ou Seta para Cima</li>
+                        <li>🌀 <strong>Portal de Conclusão:</strong> Colete os 5 objetivos e entre no Portal Mágico!</li>
+                        <li>🖊 <strong>Arena Final:</strong> O Canetão mira em 360° no cursor do mouse. Mire e clique para derrotar o chefão!</li>
+                    </ul>
+                </div>
+
+                <button class="btn-action" id="btn-start">INICIAR AVENTURA</button>
+            </div>
+
+            <!-- Tela de Vitória -->
+            <div class="overlay hidden" id="screen-victory">
+                <h1 style="color: #eab308;">🎉 VITÓRIA LENDÁRIA! 🎉</h1>
+                <h2>"Professora Dilma, a gente nunca vai esquecer de você."</h2>
+                
+                <div class="tribute-box" style="border-color: #eab308;">
+                    Obrigado por cada ensinamento, cada conselho e cada momento. Esta aventura foi feita com muito carinho para você!<br><br>
+                    <strong>UMA HOMENAGEM DA TURMA DO 6º B.</strong>
+                </div>
+
+                <div style="margin-bottom: 25px; font-size: 18px;">
+                    Jornadas Concluídas: <span id="txt-final-jornadas" style="color: #4ade80; font-weight: bold;">1</span> 
+                    | Pontuação Final: <span id="txt-final-pontos" style="color: #eab308; font-weight: bold;">0</span>
+                </div>
+
+                <button class="btn-action" id="btn-restart">COMEÇAR NOVA JORNADA 🔁</button>
+            </div>
+
+            <!-- Desafio de Geografia Ativo -->
+            <div id="quiz-box" class="hidden">
+                <div id="quiz-title">🌎 Desafio de Geografia</div>
+                <div id="quiz-question">Carregando pergunta...</div>
+            </div>
+
+            <!-- Canvas de Alta Performance -->
+            <canvas id="gameCanvas" width="800" height="520"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Configuração de Renderização e Motor Gráfico
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Desativa suavização nativa para garantir Pixel Art perfeita e nítida
+        ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+
+        // Estado do Jogo (Dados sincronizados com o painel original)
+        const gameState = {
+            fase: 1,
+            livros: 0,
+            vidas: 5,
+            pontos: 0,
+            jornadas: 1,
+            isPlaying: false,
+            audioMuted: false
+        };
+
+        // Estado das Teclas de Movimentação
+        const keys = {
+            left: false,
+            right: false,
+            up: false
+        };
+
+        // Dados do Jogador (Protótipo físico de alta precisão)
+        const player = {
